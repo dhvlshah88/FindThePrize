@@ -43,8 +43,10 @@ class GridViewController: UIViewController {
     
         self.playerOneView.layer.cornerRadius = self.playerOneView.bounds.width/2
         self.playerOneView.backgroundColor = grid.currentPlayer.color
+        self.playerOneScoreLabel.textColor = grid.currentPlayer.color
         self.playerTwoView.layer.cornerRadius = self.playerTwoView.bounds.width/2
         self.playerTwoView.backgroundColor = grid.currentPlayer.opponent.color
+        self.playerTwoScoreLabel.textColor = grid.currentPlayer.opponent.color
     }
     
     override func didReceiveMemoryWarning() {
@@ -58,15 +60,15 @@ class GridViewController: UIViewController {
         strategist.gameModel = grid
         
         updateUI()
+        
+        self.gridView.reloadData()
     }
     
     func updateUI() {
         title = "\(grid.currentPlayer.name)"
         
-        if grid.currentPlayer.playerId == ID.first.rawValue {
+        if grid.currentPlayer.playerId == ID.second.rawValue {
             startFirstAIMove()
-        } else {
-            startSecondAIMove()
         }
     }
     
@@ -93,22 +95,18 @@ class GridViewController: UIViewController {
         }
     }
 
-    func startSecondAIMove() {
-        
-    }
-    
     // function to make AI to move to next cell
     func makeAIMove(toRow row: Int, column: Int) {
         if let emptyPosition = grid.nextEmptyCell(fromRow: row, column: column) {
             grid.move(playerID: ID(rawValue: grid.currentPlayer.playerId)!, toRow: emptyPosition.0, column: emptyPosition.1)
-            
+            changeCellColor(atRow: emptyPosition.0, column: emptyPosition.1, color: grid.currentPlayer.color)
             continueGame()
         }
     }
     
     func changeCellColor(atRow row: Int, column: Int, color: UIColor) {
-        let cell: UICollectionViewCell = self.gridView.cellForItem(at: NSIndexPath(row: row, section: 0))
-        cell.backgroundView?.backgroundColor = color
+        let cell: UICollectionViewCell = self.gridView.cellForItem(at:NSIndexPath(row: column, section: row) as IndexPath)!
+        cell.backgroundView?.backgroundColor = color.withAlphaComponent(0.7)
     }
     
     func continueGame() {
@@ -149,18 +147,19 @@ extension GridViewController : UICollectionViewDelegate {
 extension GridViewController : UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return Grid.column * Grid.row
+        return Grid.column
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 1
+        return Grid.row
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        var cell :UICollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: gridViewIdentifier, for: indexPath)
-        
-        cell = UICollectionViewCell(frame: CGRect.zero)
-        
+        let cell :UICollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: gridViewIdentifier, for: indexPath)
+        if cell.backgroundView == nil {
+            cell.backgroundView = UIView()
+            cell.backgroundView?.backgroundColor = UIColor.black
+        }
         return cell
     }
 }

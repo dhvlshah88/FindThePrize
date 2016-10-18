@@ -35,9 +35,7 @@ class Grid: NSObject, GKGameModel {
         for _ in 0 ..< Grid.row * Grid.column {
             cells.append(.none)
         }
-        
-        self.currentPlayer = Player.allPlayers[0]
-  
+       
         positionMap = [Int: [(Int, Int)]]()
         for player in Player.allPlayers {
             var indexes = [(Int, Int)]()
@@ -55,7 +53,8 @@ class Grid: NSObject, GKGameModel {
                 positionMap[player.playerId] = indexes
             }
         }
-        
+  
+        currentPlayer = Player.allPlayers[0]
         prizePosition = Grid.randomPrizeIndex(excluding: corners)
         cells[prizePosition.0 + prizePosition.1 * Grid.column] = .prize
         
@@ -78,16 +77,7 @@ class Grid: NSObject, GKGameModel {
     func set(playerID: ID, in row: Int, column: Int) {
         cells[row + column * Grid.column] = playerID
     }
-
-//    func isCellEmpty(atRow row: Int, column: Int) -> Bool {
-//        let id : ID = player(atRow: row, column: column)
-//        if id == .none  || id == .prize {
-//            return true
-//        }
-//    
-//        return false
-//    }
-    
+   
     func nextEmptyCell(fromRow row: Int, column: Int) -> (Int, Int)? {
         for cell in possibleCells {
             let id = player(atRow: row + cell.0, column: column + cell.1)
