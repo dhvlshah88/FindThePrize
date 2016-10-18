@@ -9,4 +9,4 @@
  * **_GridViewController_** - This class represent game view. 
  
  
-> Note: This solution is still partial as it doesn't conatin backtracking logic and crashes randomly. 
+> Note: This solution is still partial as it doesn't contain backtracking logic and crashes randomly. It's still in works.
