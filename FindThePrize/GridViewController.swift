@@ -26,7 +26,9 @@ class GridViewController: UIViewController {
     
     fileprivate let gridViewIdentifier = "gridViewIdentifier"
     
-    var strategist: GKMinmaxStrategist!
+    var firstStrategist: GKMinmaxStrategist!
+    var secondStrategist: GKMinmaxStrategist!
+    
     var grid: Grid!
     
     override func viewDidLoad() {
@@ -35,16 +37,20 @@ class GridViewController: UIViewController {
         self.gridView.delegate = self
         self.gridView.dataSource = self
         
-        strategist = GKMinmaxStrategist()
-        strategist.maxLookAheadDepth = 1
-        strategist.randomSource = nil
+        firstStrategist = GKMinmaxStrategist()
+        firstStrategist.maxLookAheadDepth = 1
+        firstStrategist.randomSource = nil
+        
+        secondStrategist = GKMinmaxStrategist()
+        secondStrategist.maxLookAheadDepth = 1
+        secondStrategist.randomSource = nil
         
         resetGrid()
     
-        self.playerOneView.layer.cornerRadius = self.playerOneView.bounds.width/2
+        self.playerOneView.layer.cornerRadius = 60/2
         self.playerOneView.backgroundColor = grid.currentPlayer.color
         self.playerOneScoreLabel.textColor = grid.currentPlayer.color
-        self.playerTwoView.layer.cornerRadius = self.playerTwoView.bounds.width/2
+        self.playerTwoView.layer.cornerRadius = 60/2
         self.playerTwoView.backgroundColor = grid.currentPlayer.opponent.color
         self.playerTwoScoreLabel.textColor = grid.currentPlayer.opponent.color
     }
@@ -57,7 +63,8 @@ class GridViewController: UIViewController {
     // MARK: private functions
     func resetGrid() {
         grid = Grid()
-        strategist.gameModel = grid
+        firstStrategist.gameModel = grid
+        secondStrategist.gameModel = grid
         
         updateUI()
         
@@ -66,10 +73,14 @@ class GridViewController: UIViewController {
     
     func updateUI() {
         title = "\(grid.currentPlayer.name)"
+        self.gridView.reloadData()
         
-        if grid.currentPlayer.playerId == ID.second.rawValue {
+        if grid.currentPlayer.playerId == ID.first.rawValue {
             startFirstAIMove()
+        } else {
+            startSecondAIMove()
         }
+        
     }
     
     func makeMove() {
@@ -83,7 +94,22 @@ class GridViewController: UIViewController {
     func startFirstAIMove() {
         DispatchQueue.global().async {
             let strategistTime = CFAbsoluteTimeGetCurrent()
-            let position : (Int, Int) = self.positionForAIMove()!
+            let position : (Int, Int) = self.positionForFirstAIMove()!
+            let delta = CFAbsoluteTimeGetCurrent() - strategistTime
+            
+            let aiTimeCeiling = 1.0
+            let delay = min(aiTimeCeiling - delta, aiTimeCeiling)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: {
+                self.makeAIMove(toRow: position.0, column: position.1)
+            })
+        }
+    }
+    
+    func startSecondAIMove() {
+        DispatchQueue.global().async {
+            let strategistTime = CFAbsoluteTimeGetCurrent()
+            let position : (Int, Int) = self.positionForSecondAIMove()!
             let delta = CFAbsoluteTimeGetCurrent() - strategistTime
             
             let aiTimeCeiling = 1.0
@@ -106,7 +132,10 @@ class GridViewController: UIViewController {
     
     func changeCellColor(atRow row: Int, column: Int, color: UIColor) {
         let cell: UICollectionViewCell = self.gridView.cellForItem(at:NSIndexPath(row: column, section: row) as IndexPath)!
-        cell.backgroundView?.backgroundColor = color.withAlphaComponent(0.7)
+        let view : UIView = UIView(frame: cell.frame)
+        view.layer.cornerRadius = cell.frame.height/2
+        view.backgroundColor = color
+        cell.backgroundView = view
     }
     
     func continueGame() {
@@ -131,8 +160,16 @@ class GridViewController: UIViewController {
         updateUI()
     }
     
-    func positionForAIMove() -> (Int, Int)? {
-        if let aiMove = strategist.bestMove(for: grid.currentPlayer) as? Move {
+    func positionForFirstAIMove() -> (Int, Int)? {
+        if let aiMove = firstStrategist.bestMove(for: grid.currentPlayer) as? Move {
+            return (aiMove.row, aiMove.column)
+        }
+        
+        return nil
+    }
+    
+    func positionForSecondAIMove() -> (Int, Int)? {
+        if let aiMove = secondStrategist.bestMove(for: grid.currentPlayer) as? Move {
             return (aiMove.row, aiMove.column)
         }
         
@@ -156,9 +193,11 @@ extension GridViewController : UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell :UICollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: gridViewIdentifier, for: indexPath)
+        cell.contentView.layer.borderColor = UIColor.black.cgColor
         if cell.backgroundView == nil {
-            cell.backgroundView = UIView()
-            cell.backgroundView?.backgroundColor = UIColor.black
+            cell.backgroundColor = UIColor.white
+        } else {
+            cell.backgroundView?.backgroundColor?.withAlphaComponent(0.7)
         }
         return cell
     }

@@ -13,12 +13,12 @@ class Grid: NSObject, GKGameModel {
     
     static let row = 5
     static let column = 5
-    let corners : [(Int, Int)] = [(0, 0), (0, Grid.column - 1), (Grid.row - 1, 0), (Grid.row * Grid.column - 1, Grid.row * Grid.column - 1)];
+    let corners : [(Int, Int)] = [(0, 0), (0, Grid.column - 1), (Grid.row - 1, 0), (Grid.row - 1, Grid.column - 1)];
     let possibleCells = [(-1, 0), (0, -1), (1, 0), (0, 1)]
     
     var currentPlayer: Player
     var currentPosition: (Int, Int) = (-1, -1)
-    var positionMap: [Int: [(Int, Int)]]
+    fileprivate var positionMap: [Int: [(Int, Int)]]
     
     var prizePosition : (Int, Int)
     var cells = [ID]();
@@ -79,13 +79,11 @@ class Grid: NSObject, GKGameModel {
     }
    
     func nextEmptyCell(fromRow row: Int, column: Int) -> (Int, Int)? {
-        for cell in possibleCells {
-            let id = player(atRow: row + cell.0, column: column + cell.1)
-            if id == .none  || id == .prize {
-                return (row + cell.0, column + cell.1)
-            }
+        let id = player(atRow: row , column: column)
+        if id == .none  || id == .prize {
+            return (row , column)
         }
-       
+        
         return nil
     }
     
@@ -137,8 +135,13 @@ class Grid: NSObject, GKGameModel {
             var moves = [Move]()
             
             for cell in possibleCells {
-                if canMove(fromRow: cell.0, column: cell.1) {
-                    moves.append(Move(row: cell.0, column: cell.1))
+                let nextPosition = (currentPosition.0 + cell.0, currentPosition.1 + cell.1)
+                if nextPosition.0 < 0 || nextPosition.0 == Grid.row || nextPosition.1 < 0 || nextPosition.1 == Grid.column {
+                    continue
+                }
+                
+                if canMove(fromRow:nextPosition.0, column: nextPosition.1) {
+                    moves.append(Move(row: nextPosition.0, column: nextPosition.1))
                 }
             }
             

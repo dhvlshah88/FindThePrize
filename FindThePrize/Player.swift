@@ -16,9 +16,9 @@ class Player: NSObject, GKGameModelPlayer {
     var name : String
     var playerId: Int
     
-    static var allPlayers : [Player] {
+    static var allPlayers : [Player] = {
         return [Player(id: ID.first, name: "Player One", color: UIColor.randomColor()), Player(id: ID.second, name: "Player Two", color: UIColor.randomColor())]
-    }
+    }()
     
     var opponent: Player {
         if playerId == ID.first.rawValue {
