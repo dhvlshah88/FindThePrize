@@ -194,10 +194,18 @@ extension GridViewController : UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell :UICollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: gridViewIdentifier, for: indexPath)
         cell.contentView.layer.borderColor = UIColor.black.cgColor
-        if cell.backgroundView == nil {
-            cell.backgroundColor = UIColor.white
+        
+        if indexPath.section == grid.prizePosition.0 && indexPath.item == grid.prizePosition.1 {
+            if cell.backgroundView == nil {
+                cell.backgroundView = UIView()
+                cell.backgroundView?.backgroundColor = UIColor.purple
+            }
         } else {
-            cell.backgroundView?.backgroundColor?.withAlphaComponent(0.7)
+            if cell.backgroundView == nil {
+                cell.backgroundColor = UIColor.white
+            } else {
+                cell.backgroundView?.backgroundColor?.withAlphaComponent(0.7)
+            }
         }
         return cell
     }
